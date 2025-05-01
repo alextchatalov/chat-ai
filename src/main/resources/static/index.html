@@ -321,6 +321,34 @@
         .ai-message:has(table) {
             max-width: 90%;
         }
+
+        /* Model Selector Styles */
+        .model-selector {
+            margin-left: auto;
+            padding-left: 20px;
+        }
+
+        .model-select {
+            padding: 8px 12px;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            background-color: white;
+            font-family: 'Roboto', sans-serif;
+            font-size: 14px;
+            color: #2d3748;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .model-select:focus {
+            outline: none;
+            border-color: #4a6ee0;
+            box-shadow: 0 0 0 3px rgba(74, 110, 224, 0.1);
+        }
+
+        .model-select:hover {
+            border-color: #4a6ee0;
+        }
     </style>
 </head>
 <body>
@@ -329,6 +357,12 @@
         <i class="fas fa-robot"></i>
     </div>
     <h1 class="app-title">AI Chat</h1>
+    <div class="model-selector">
+        <select id="modelSelect" class="model-select">
+            <option value="OPEN_AI">ChatGPT</option>
+            <option value="OLLAMA">Ollama</option>
+        </select>
+    </div>
 </div>
 
 <div class="chat-container" id="chatContainer"></div>
@@ -455,16 +489,45 @@
         formData.append('message', message);
 
         try {
+            // Get the selected AI model
+            const modelSelect = document.getElementById('modelSelect');
+            const selectedModel = modelSelect.value;
+
             if (fileInput.files.length > 0) {
                 formData.append('file', fileInput.files[0]);
-                const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.generateWithFile}`, {
-                    method: 'POST',
-                    body: formData
+
+                // Use XMLHttpRequest for file uploads to set custom headers
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.generateWithFile}`, true);
+                xhr.setRequestHeader('model', selectedModel);
+
+                // Create a promise to handle the async XHR
+                const xhrPromise = new Promise((resolve, reject) => {
+                    xhr.onload = function() {
+                        if (this.status >= 200 && this.status < 300) {
+                            resolve(JSON.parse(xhr.response));
+                        } else {
+                            reject(new Error(xhr.statusText));
+                        }
+                    };
+                    xhr.onerror = function() {
+                        reject(new Error('Network Error'));
+                    };
                 });
-                const data = await response.json();
+
+                // Send the request
+                xhr.send(formData);
+
+                // Wait for the response
+                const data = await xhrPromise;
                 addMessage(data.generation, false);
             } else {
-                const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.generate}?message=${encodeURIComponent(message)}`);
+                const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.generate}?message=${encodeURIComponent(message)}`, {
+                    method: 'GET',
+                    headers: {
+                        'model': selectedModel
+                    }
+                });
                 const data = await response.json();
                 addMessage(data.generation, false);
             }

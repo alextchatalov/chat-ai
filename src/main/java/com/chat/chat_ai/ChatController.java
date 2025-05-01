@@ -1,55 +1,73 @@
 package com.chat.chat_ai;
 
+import com.chat.chat_ai.domain.AiModel;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-
-import static org.apache.poi.ss.usermodel.CellType.NUMERIC;
+import java.util.Objects;
 
 @RestController
 @CrossOrigin(origins = "*")
 public class ChatController {
 
-    private final OllamaChatModel chatModel;
 
-    @Autowired
-    public ChatController(OllamaChatModel chatModel) {
-        this.chatModel = chatModel;
+    private final ChatClient ollamaClient;
+    private final ChatClient openAiClient;
+
+    public ChatController(@Qualifier("ollamaAiChatClient") ChatClient ollamaClient, @Qualifier("openAiChatClient") ChatClient openAiClient) {
+        this.openAiClient = openAiClient;
+        this.ollamaClient = ollamaClient;
     }
+
 
     @GetMapping("/ai/generate")
-    public Map<String,String> generate(@RequestParam(value = "message", defaultValue = "Tell me a joke") String message) {
-        return Map.of("generation", this.chatModel.call(message));
-    }
-
-    @GetMapping("/ai/generateStream")
-    public Flux<ChatResponse> generateStream(@RequestParam(value = "message", defaultValue = "Tell me a joke") String message) {
-        Prompt prompt = new Prompt(new UserMessage(message));
-        return this.chatModel.stream(prompt);
+    public Map<String,String> generate(@RequestParam(value = "message", defaultValue = "Tell me a joke") String message,
+    @RequestHeader("model") AiModel model) {
+        return call(model, message);
     }
 
     @PostMapping("/ai/generate/file")
-    public Map<String,String> handleFileUpload(@RequestParam("file") MultipartFile file,
-                                   @RequestParam(value = "message") String message) {
+    public Map<String,String> handleFileUpload(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "message") String message,
+            @RequestHeader("model") AiModel model) {
 
         String finalMessage = message + fileToString(file);
-        return Map.of("generation", this.chatModel.call(finalMessage));
+        return call(model, finalMessage);
+    }
+
+    private Map<String, String> call(AiModel model, String message) {
+        try {
+            return Map.of("generation",
+                    Objects.requireNonNull(defineModel(model)
+                            .prompt()
+                            .user(message)
+                            .call()
+                            .content())
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Map.of("error", e.getMessage());
+        }
+    }
+
+    private ChatClient defineModel(AiModel model) {
+        return switch (model) {
+            case OPEN_AI -> openAiClient;
+            case OLLAMA -> ollamaClient;
+            default -> throw new IllegalStateException("Unexpected value: " + model);
+        };
     }
 
     private String fileToString(MultipartFile file) {
