@@ -1,4 +1,4 @@
-package com.chat.chat_ai.domain;
+package com.chat.chat_ai.entrypoint.domain;
 
 public enum AiModel {
     OPEN_AI,

@@ -1,15 +1,16 @@
-package com.chat.chat_ai.config;
+package com.chat.chat_ai.entrypoint.config;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class OpenAiConfiguration {
+public class OllamaAiConfiguration {
 
     @Bean
-    public ChatClient openAiChatClient(OpenAiChatModel chatModel) {
+    public ChatClient ollamaAiChatClient(OllamaChatModel chatModel) {
+
         return ChatClient.create(chatModel);
     }
 }

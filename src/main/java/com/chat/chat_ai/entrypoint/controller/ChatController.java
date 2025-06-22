@@ -1,13 +1,13 @@
-package com.chat.chat_ai;
+package com.chat.chat_ai.entrypoint.controller;
 
-import com.chat.chat_ai.domain.AiModel;
+import com.chat.chat_ai.core.facede.CallAiFacade;
+import com.chat.chat_ai.entrypoint.domain.AiModel;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.BufferedReader;
@@ -15,26 +15,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class ChatController {
 
-
-    private final ChatClient ollamaClient;
-    private final ChatClient openAiClient;
-
-    public ChatController(@Qualifier("ollamaAiChatClient") ChatClient ollamaClient, @Qualifier("openAiChatClient") ChatClient openAiClient) {
-        this.openAiClient = openAiClient;
-        this.ollamaClient = ollamaClient;
-    }
+    private final CallAiFacade callAiFacade;
 
 
     @GetMapping("/ai/generate")
     public Map<String,String> generate(@RequestParam(value = "message", defaultValue = "Tell me a joke") String message,
     @RequestHeader("model") AiModel model) {
-        return call(model, message);
+        return callAiFacade.execute(model, message);
     }
 
     @PostMapping("/ai/generate/file")
@@ -44,30 +37,7 @@ public class ChatController {
             @RequestHeader("model") AiModel model) {
 
         String finalMessage = message + fileToString(file);
-        return call(model, finalMessage);
-    }
-
-    private Map<String, String> call(AiModel model, String message) {
-        try {
-            return Map.of("generation",
-                    Objects.requireNonNull(defineModel(model)
-                            .prompt()
-                            .user(message)
-                            .call()
-                            .content())
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Map.of("error", e.getMessage());
-        }
-    }
-
-    private ChatClient defineModel(AiModel model) {
-        return switch (model) {
-            case OPEN_AI -> openAiClient;
-            case OLLAMA -> ollamaClient;
-            default -> throw new IllegalStateException("Unexpected value: " + model);
-        };
+        return callAiFacade.execute(model, finalMessage);
     }
 
     private String fileToString(MultipartFile file) {
