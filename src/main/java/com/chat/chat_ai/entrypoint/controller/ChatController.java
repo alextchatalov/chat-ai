@@ -27,7 +27,7 @@ public class ChatController {
     @GetMapping("/ai/generate")
     public Map<String,String> generate(@RequestParam(value = "message", defaultValue = "Tell me a joke") String message,
     @RequestHeader("model") AiModel model) {
-        return callAiFacade.execute(model, message);
+        return callAiFacade.execute(model, message).output();
     }
 
     @PostMapping("/ai/generate/file")
@@ -37,7 +37,7 @@ public class ChatController {
             @RequestHeader("model") AiModel model) {
 
         String finalMessage = message + fileToString(file);
-        return callAiFacade.execute(model, finalMessage);
+        return callAiFacade.execute(model, finalMessage).output();
     }
 
     private String fileToString(MultipartFile file) {

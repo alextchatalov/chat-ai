@@ -1,10 +1,10 @@
 package com.chat.chat_ai.core.facede;
 
+import com.chat.chat_ai.core.domain.out.CallApiModelOutput;
 import com.chat.chat_ai.entrypoint.domain.AiModel;
 
-import java.util.Map;
 
-public interface CallAiFacade {
+public interface CallAiFacade extends Facede {
 
-    Map<String, String> execute(AiModel model, String message);
+    CallApiModelOutput execute(AiModel model, String message);
 }

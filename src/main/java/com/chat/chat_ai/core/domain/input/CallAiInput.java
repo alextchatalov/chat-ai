@@ -1,4 +1,4 @@
-package com.chat.chat_ai.core.usecase.domain;
+package com.chat.chat_ai.core.domain.input;
 
 import com.chat.chat_ai.entrypoint.domain.AiModel;
 
