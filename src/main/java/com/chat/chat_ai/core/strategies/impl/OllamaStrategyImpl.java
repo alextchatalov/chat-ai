@@ -3,6 +3,7 @@ package com.chat.chat_ai.core.strategies.impl;
 import com.chat.chat_ai.core.domain.input.CallAiInput;
 import com.chat.chat_ai.core.domain.out.CallApiModelOutput;
 import com.chat.chat_ai.core.strategies.AiModelStrategy;
+import com.chat.chat_ai.core.tools.DateTimeTools;
 import com.chat.chat_ai.entrypoint.domain.AiModel;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,6 +32,7 @@ public class OllamaStrategyImpl implements AiModelStrategy<AiModel, CallAiInput,
             var response =  Map.of("generation",
                     Objects.requireNonNull(ollamaClient
                             .prompt()
+                            .tools(new DateTimeTools())
                             .user(command.message())
                             .call()
                             .content())
