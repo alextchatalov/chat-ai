@@ -1,8 +1,8 @@
-package com.chat.chat_ai.core.strategies.impl;
+package com.chat.chat_ai.dataprovider.strategies.impl;
 
 import com.chat.chat_ai.core.domain.input.CallAiInput;
 import com.chat.chat_ai.core.domain.out.CallApiModelOutput;
-import com.chat.chat_ai.core.strategies.AiModelStrategy;
+import com.chat.chat_ai.dataprovider.strategies.AiModelStrategy;
 import com.chat.chat_ai.entrypoint.domain.AiModel;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -1,9 +1,9 @@
-package com.chat.chat_ai.core.factories;
+package com.chat.chat_ai.dataprovider.factories;
 
 import com.chat.chat_ai.core.domain.input.CallAiInput;
 import com.chat.chat_ai.core.domain.out.CallApiModelOutput;
 import com.chat.chat_ai.core.exception.StrategyNotFoundException;
-import com.chat.chat_ai.core.strategies.AiModelStrategy;
+import com.chat.chat_ai.dataprovider.strategies.AiModelStrategy;
 import com.chat.chat_ai.entrypoint.domain.AiModel;
 import org.springframework.stereotype.Component;
 
